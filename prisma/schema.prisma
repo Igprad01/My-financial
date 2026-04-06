@@ -1,0 +1,107 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  // provider = "prisma-client"
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url = env("DATABASE_URL")
+}
+
+model user {
+  id             Int      @id @default(autoincrement())
+  name           String
+  email          String   @unique
+  telegramChatId String   @unique
+  password       String
+  createdAt      DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  transaksi transaksi[]
+  kategori  kategori[]
+  anggaran  anggaran[]
+  tagihan   TagihanRutin[]
+}
+
+enum JenisTransaksi {
+  pemasukan
+  pengeluaran
+}
+
+model transaksi {
+  id         String         @id @default(uuid())
+  penggunaId Int
+  jenis      JenisTransaksi
+  jumlah     Decimal        @db.Decimal(15, 2)
+  keterangan String?
+  tanggal    DateTime       @default(now())
+  createdAt  DateTime       @default(now())
+  updated_at DateTime       @updatedAt
+
+  kategoriId String?
+  kategori   kategori? @relation("KategoriTransaksi", fields: [kategoriId], references: [id], onDelete: SetNull)
+
+  pengguna user @relation(fields: [penggunaId], references: [id], onDelete: Cascade)
+
+  @@index([penggunaId, tanggal])
+  @@index([penggunaId, jenis])
+  @@map("transaksi")
+}
+
+model kategori {
+  id         String         @id @default(uuid())
+  penggunaId Int?
+  nama       String
+  jenis      JenisTransaksi
+  ikon       String?
+  warna      String?
+  createdAt  DateTime       @default(now())
+  updated_at DateTime       @updatedAt
+
+  transaksi transaksi[]    @relation("KategoriTransaksi")
+  anggaran  anggaran[]
+  tagihan   TagihanRutin[]
+
+  pengguna user? @relation(fields: [penggunaId], references: [id], onDelete: Cascade)
+
+  @@index([penggunaId, nama])
+  @@map("kategori")
+}
+
+model anggaran {
+  id         String   @id @default(uuid())
+  penggunaId Int
+  kategoriId String?
+  jumlah     Decimal  @db.Decimal(15, 2)
+  periode    String   @default("bulanan")
+  createdAt  DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  kategori kategori? @relation(fields: [kategoriId], references: [id], onDelete: Cascade)
+  pengguna user      @relation(fields: [penggunaId], references: [id], onDelete: Cascade)
+
+  @@index([penggunaId, periode])
+  @@map("anggaran")
+}
+
+model TagihanRutin {
+  id                String   @id @default(uuid())
+  penggunaId        Int
+  nama              String
+  jumlah            Decimal  @db.Decimal(15, 2)
+  tanggalJatuhTempo Int // 1 sampai 31
+  kategoriId        String?
+  aktif             Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  pengguna user      @relation(fields: [penggunaId], references: [id], onDelete: Cascade)
+  kategori kategori? @relation(fields: [kategoriId], references: [id], onDelete: SetNull)
+
+  @@map("tagihan_rutin")
+}
