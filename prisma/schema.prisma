@@ -13,20 +13,20 @@ datasource db {
   url = env("DATABASE_URL")
 }
 
-model user {
-  id             Int      @id @default(autoincrement())
-  name           String
-  email          String   @unique
-  telegramChatId String   @unique
-  password       String
-  createdAt      DateTime @default(now())
-  updated_at     DateTime @updatedAt
+  model user {
+    id             Int      @id @default(autoincrement())
+    name           String
+    email          String   @unique
+    telegramChatId String   @unique
+    password       String
+    createdAt      DateTime @default(now())
+    updated_at     DateTime @updatedAt
 
-  transaksi transaksi[]
-  kategori  kategori[]
-  anggaran  anggaran[]
-  tagihan   TagihanRutin[]
-}
+    transaksi transaksi[]
+    kategori  kategori[]
+    anggaran  anggaran[]
+    tagihan   TagihanRutin[]
+  }
 
 enum JenisTransaksi {
   pemasukan

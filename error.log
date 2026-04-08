@@ -1,0 +1,36 @@
+[8/4/2026, 23.02.15] ERROR di Prisma Database - Pendaftaran User (budi@email.com):
+PrismaClientKnownRequestError: 
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].user.create()` invocation in
+C:\laragon\www\My-financial\.next\dev\server\chunks\[root-of-the-server]__0h0po5r._.js:150:173
+
+  147 }
+  148 try {
+  149     const hashedPassword = await __TURBOPACK__imported__module__$5b$externals$5d2f$bcrypt__$5b$external$5d$__$28$bcrypt$2c$__cjs$2c$__$5b$project$5d2f$node_modules$2f$bcrypt$29$__["default"].hash(inputPassword, 10);
+→ 150     const Newuser = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["prisma"].user.create(
+Unique constraint failed on the constraint: `user_telegramChatId_key`
+    at ei.handleRequestError (C:\laragon\www\My-financial\node_modules\@prisma\client\runtime\library.js:121:7268)
+    at ei.handleAndLogRequestError (C:\laragon\www\My-financial\node_modules\@prisma\client\runtime\library.js:121:6593)
+    at ei.request (C:\laragon\www\My-financial\node_modules\@prisma\client\runtime\library.js:121:6300)
+    at async a (C:\laragon\www\My-financial\node_modules\@prisma\client\runtime\library.js:130:9551)
+    at async handleUpdate (C:\laragon\www\My-financial\.next\dev\server\chunks\[root-of-the-server]__0h0po5r._.js:150:33)
+    at async POST (C:\laragon\www\My-financial\.next\dev\server\chunks\[root-of-the-server]__0h0po5r._.js:185:9)
+    at async AppRouteRouteModule.do (C:\laragon\www\My-financial\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js:5:40732)
+    at async AppRouteRouteModule.handle (C:\laragon\www\My-financial\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js:5:47861)
+    at async responseGenerator (C:\laragon\www\My-financial\.next\dev\server\chunks\[root-of-the-server]__0klm5-7._.js:16464:38)
+    at async AppRouteRouteModule.handleResponse (C:\laragon\www\My-financial\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js:1:227216)
+    at async handleResponse (C:\laragon\www\My-financial\.next\dev\server\chunks\[root-of-the-server]__0klm5-7._.js:16527:32)
+    at async Module.handler (C:\laragon\www\My-financial\.next\dev\server\chunks\[root-of-the-server]__0klm5-7._.js:16581:13)
+    at async DevServer.renderToResponseWithComponentsImpl (C:\laragon\www\My-financial\node_modules\next\dist\server\base-server.js:1454:9)
+    at async DevServer.renderPageComponent (C:\laragon\www\My-financial\node_modules\next\dist\server\base-server.js:1506:24)
+    at async DevServer.renderToResponseImpl (C:\laragon\www\My-financial\node_modules\next\dist\server\base-server.js:1556:32)
+    at async DevServer.pipeImpl (C:\laragon\www\My-financial\node_modules\next\dist\server\base-server.js:1043:25)
+    at async NextNodeServer.handleCatchallRenderRequest (C:\laragon\www\My-financial\node_modules\next\dist\server\next-server.js:338:17)
+    at async DevServer.handleRequestImpl (C:\laragon\www\My-financial\node_modules\next\dist\server\base-server.js:934:17)
+    at async C:\laragon\www\My-financial\node_modules\next\dist\server\dev\next-dev-server.js:394:20
+    at async Span.traceAsyncFn (C:\laragon\www\My-financial\node_modules\next\dist\trace\trace.js:164:20)
+    at async DevServer.handleRequest (C:\laragon\www\My-financial\node_modules\next\dist\server\dev\next-dev-server.js:390:24)
+    at async invokeRender (C:\laragon\www\My-financial\node_modules\next\dist\server\lib\router-server.js:253:21)
+    at async handleRequest (C:\laragon\www\My-financial\node_modules\next\dist\server\lib\router-server.js:452:24)
+    at async requestHandlerImpl (C:\laragon\www\My-financial\node_modules\next\dist\server\lib\router-server.js:501:13)
+    at async Server.requestListener (C:\laragon\www\My-financial\node_modules\next\dist\server\lib\start-server.js:225:13)
+----------------------------------------
