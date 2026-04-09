@@ -1,109 +1,53 @@
-import { prisma } from "./prisma";
-import bcrypt from "bcrypt";
-
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const BASE_URL = `https://api.telegram.org/bot${TOKEN}`;
+async function callApi(method: string, payload: object) {
+  if (!TOKEN) {
+    console.error("❌ ERROR: TELEGRAM_BOT_TOKEN tidak ditemukan di .env");
+    return null;
+  }
 
-interface TelegramMessage {
-  chat: { id: number };
-  text?: string;
-  from?: { id: number; first_name: string; username?: string };
+  try {
+    const response = await fetch(`${BASE_URL}/${method}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+
+    if (!data.ok) {
+      console.error(`⚠️ Telegram API Error [${method}]:`, data.description);
+    }
+
+    return data;
+  } catch (error) {
+    console.error(`🔥 Network Error [${method}]:`, error);
+    return null;
+  }
 }
 
-interface TelegramCallbackQuery {
-  id: string;
-  data: string;
-  message: { chat: { id: number } };
-}
 
-interface TelegramUpdate {
-  message?: TelegramMessage;
-  callback_query?: TelegramCallbackQuery;
-}
-
-async function sendMessage(chatId: number, text: string) {
-  const url = `https://api.telegram.org/bot${TOKEN}/sendMessage`;
-
-  await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
+export const telegram = {
+  async sendMessage(chatId: number | string, text: string, options?: object) {
+    return await callApi("sendMessage", {
       chat_id: chatId,
       text: text,
       parse_mode: "HTML",
-    }),
-  }).catch((err) => console.error(err));
-}
+      ...options,
+    });
+  },
 
-export async function handleUpdate(update: unknown) {
-  const upd = update as TelegramUpdate;
-  if (upd.message) {
-    const chatId = upd.message.chat.id;
-    const text = upd.message.text?.trim() || "";
+  async sendChatAction(chatId: number | string, action: "typing" | "upload_photo" = "typing") {
+    return await callApi("sendChatAction", {
+      chat_id: chatId,
+      action: action,
+    });
+  },
 
-    if (text === "/start") {
-      await sendMessage(
-        chatId,
-        "👋 Halo! Selamat datang di Financial Bot.\n\n" +
-          "Ketik /daftar Nama, Email, Password untuk mulai.\n" +
-          "Contoh: /daftar Budi Santoso, budi@email.com, rahasia123",
-      );
-    } else if (text.startsWith("/daftar")) {
-      const inputString = text.replace("/daftar", "").trim();
-      const inputParts = inputString.split(",");
-
-      if (inputParts.length < 3) {
-        return sendMessage(
-          chatId,
-          "❌ Format salah!\n\n" +
-            "Gunakan format: /daftar Nama, Email, Password\n" +
-            "Contoh: /daftar Budi, budi@email.com, rahasia123",
-        );
-      }
-
-      // PERBAIKAN: Menggunakan nama variabel baru & optional chaining (?)
-      // Ini akan memaksa TypeScript mereset pengecekan tipe datanya
-      const inputNama = inputParts[0]?.trim();
-      const inputEmail = inputParts[1]?.trim();
-      const inputPassword = inputParts[2]?.trim();
-
-      if (!inputNama || !inputEmail || !inputPassword) {
-        return sendMessage(
-          chatId,
-          "❌ Nama, Email, dan Password tidak boleh kosong.",
-        );
-      }
-
-      try {
-        const hashedPassword = await bcrypt.hash(inputPassword, 10);
-
-        const Newuser = await prisma.user.create({
-          data: {
-            name: inputNama,
-            telegramChatId: chatId.toString(),
-            email: inputEmail,
-            password: hashedPassword, 
-          },
-        });
-
-        await sendMessage(
-          chatId,
-          `✅ Registrasi berhasil!\n\n` +
-            `Nama : <b>${Newuser.name}</b>\n` +
-            `Email : <b>${Newuser.email}</b>\n` +
-            `Telegram ID : ${chatId}`,
-        );
-      } catch (error) {
-        console.error(error);
-        await sendMessage(
-          chatId,
-          "❌ Gagal mendaftar. Email atau akun Telegram ini mungkin sudah terdaftar.",
-        );
-      }
-    } else {
-      await sendMessage(
-        chatId,
-        "Maaf, perintah tidak dikenal.\nGunakan /start",
-      );
-    }
+  async deleteMessage(chatId: number | string, messageId: number) {
+    return await callApi("deleteMessage", {
+      chat_id: chatId,
+      message_id: messageId,
+    });
   }
-}
+};

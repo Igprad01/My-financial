@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse  } from "next/server";
-import { handleUpdate } from "@/lib/telegram";
+import { handleUpdate } from "@/lib/bot-command";
 
 export async function POST(request: NextRequest) {
   try {
