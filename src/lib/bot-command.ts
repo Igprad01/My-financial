@@ -1,6 +1,7 @@
 import { prisma } from "./prisma";
 import { telegram } from "./telegram";
 import { TelegramUpdate } from "../types/telegram";
+import { handleKeuanganCommand } from "./command/keuangan";
 import { user } from "@prisma/client";
 import bcrypt from "bcrypt";
 
@@ -20,16 +21,23 @@ export async function handleUpdate(update: TelegramUpdate): Promise<void> {
     if (user) {
       await telegram.sendMessage(
         chatId,
-        `Selamat datang kembali, <b>${user.name}</b>!\n` +
-          `Email: <b>${user.email}</b>`,
+        `👋 <b>Halo, ${user.name}!</b>\n\n` +
+          `Senang melihatmu kembali. Gunakan bot ini untuk memantau keuanganmu agar tidak bocor alus! 💸\n\n` +
+          `<b>📌 Cara Pakai: ketik  <code>/help</code></b>\n\n` +
+        { parse_mode: "HTML" },
       );
       return;
     }
 
     await telegram.sendMessage(
       chatId,
-      "👋 Halo! Anda belum terdaftar.\n" +
-        "Gunakan format: <code>/daftar Nama, Email, Password</code>",
+      "👋 <b>Halo! Selamat datang di FinancialKu.</b>\n\n" +
+        "Bot ini akan membantumu mencatat keuangan harian dengan cepat via Telegram.\n\n" +
+        "<b>⚠️ Anda belum terdaftar.</b>\n" +
+        "Untuk mulai menggunakan fitur bot, silakan daftar dulu ya:\n" +
+        "Format: <code>/daftar Nama, Email, Password</code>\n\n" +
+        "<i>Contoh: /daftar Budi, budi@mail.com, rahasia123</i>",
+      { parse_mode: "HTML" },
     );
     return;
   }
@@ -76,18 +84,44 @@ export async function handleUpdate(update: TelegramUpdate): Promise<void> {
   }
 
   if (user) {
-    if (text === "/saldo") {
-      await telegram.sendMessage(chatId, "💰 Saldo Anda: Rp 0");
+    const commands = [
+      "/saldo",
+      "/tambah",
+      "/pemasukan",
+      "/pengeluaran",
+      "/keluar",
+     
+    ];
+    const isFinancialCommand = commands.some((cmd) => text.startsWith(cmd));
+
+    if (isFinancialCommand) {
+      await handleKeuanganCommand(chatId, text);
       return;
-    } else if (text === "/help") {
-        await telegram.sendMessage(
-            chatId,
-            "📌 Perintah yang tersedia:\n" 
-        )
     }
+
+    // 2. Tangani perintah non-keuangan (seperti help)
+    if (text === "/help") {
+      await telegram.sendMessage(
+        chatId,
+     `👋 <b>Halo, ${user.name}!</b>\n\n` +
+            `Berikut adalah daftar fitur yang bisa kamu gunakan:\n\n` +
+            `<b>📌 Fitur & Cara Pakai:</b>\n` +
+            `➕ <b>Catat Masuk:</b> <code>/pemasukan [nominal] [ket]</code>\n` +
+            `➖ <b>Catat Keluar:</b> <code>/keluar [nominal] [ket]</code>\n` +
+            `📊 <b>Cek Saldo:</b> <code>/saldo</code>\n` +
+            `📈 <b>Status Boros:</b> <code>/limit</code> (Segera)\n` +
+            `❓ <b>Bantuan:</b> <code>/help</code>\n\n` +
+            `<i>Contoh: /keluar 50000 Makan Siang</i>` +
+          `❓ <b>/help</b> - Menampilkan pesan bantuan ini`,
+        { parse_mode: "HTML" },
+      );
+      return;
+    }
+
+    // 3. Jika tidak ada yang cocok
     await telegram.sendMessage(
       chatId,
-      "❓ Perintah tidak dikenal. Coba /start atau /saldo.",
+      "❓ Perintah tidak dikenal. Ketik `/help` untuk melihat daftar perintah.",
     );
     return;
   }
