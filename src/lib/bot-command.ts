@@ -36,7 +36,7 @@ export async function handleUpdate(update: TelegramUpdate): Promise<void> {
         "<b>⚠️ Anda belum terdaftar.</b>\n" +
         "Untuk mulai menggunakan fitur bot, silakan daftar dulu ya:\n" +
         "Format: <code>/daftar Nama, Email, Password</code>\n\n" +
-        "<i>Contoh: /daftar Budi, budi@mail.com, rahasia123</i>",
+        "<i>Contoh: /daftar Budi, budi@gmail.com, rahasia123</i>",
       { parse_mode: "HTML" },
     );
     return;
