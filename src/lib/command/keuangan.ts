@@ -102,63 +102,37 @@ export async function handleKeuanganCommand(chatId: number, text: string) {
       await telegram.sendMessage(chatId, pesan, { parse_mode: "Markdown" });
       break;
     }
+    case "/riwayat": {
+      const listTransaksi = await prisma.transaksi.findMany({
+        where: { penggunaId: user.id },
+        orderBy: { createdAt: "desc" }, 
+        take: 5, 
+        include: { kategori: true },
+      });
 
-    // case "/limit": {
-     
-    //   const now = new Date();
-    //   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    //   const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      if (listTransaksi.length === 0) {
+        return await telegram.sendMessage(
+          chatId,
+          "Belum ada riwayat transaksi.",
+        );
+      }
+      let pesanRiwayat = "📜 <b>5 Transaksi Terakhir:</b>\n\n";
 
-    //   // 2. Ambil total pengeluaran bulan ini dari DB
-    //   const pengeluaranBulanIni = await prisma.transaksi.aggregate({
-    //     where: {
-    //       penggunaId: user.id,
-    //       jenis: "pengeluaran",
-    //       tanggal: {
-    //         gte: startOfMonth,
-    //         lte: endOfMonth,
-    //       },
-    //     },
-    //     _sum: { jumlah: true },
-    //   });
+      listTransaksi.forEach((trx, index) => {
+        const simbol = trx.jenis === "pemasukan" ? "✅" : "💸";
+        const tanggal = trx.tanggal.toLocaleDateString("id-ID", {
+          day: "2-digit",
+          month: "short",
+        });
+        const kategori = trx.kategori ? `[${trx.kategori.nama}]` : "";
 
-    //   // 3. Ambil total anggaran (budget) user
-    //   const dataAnggaran = await prisma.anggaran.aggregate({
-    //     where: { penggunaId: user.id },
-    //     _sum: { jumlah: true },
-    //   });
+        pesanRiwayat += `${index + 1}. ${simbol} <b>${formatRupiah(Number(trx.jumlah))}</b>\n`;
+        pesanRiwayat += `   📅 ${tanggal} | ${trx.keterangan} ${kategori}\n\n`;
+      });
 
-    //   const totalPakai = Number(pengeluaranBulanIni._sum.jumlah || 0);
-    //   const totalBudget = Number(dataAnggaran._sum.jumlah || 0);
-
-    //   if (totalBudget === 0) {
-    //     return await telegram.sendMessage(
-    //       chatId,
-    //       "⚠️ <b>Anda belum mengatur anggaran.</b>\nAtur anggaran di dashboard web untuk memantau batas pengeluaran.",
-    //       { parse_mode: "HTML" },
-    //     );
-    //   }
-
-    //   // 4. Hitung persentase keborosan
-    //   const persentase = (totalPakai / totalBudget) * 100;
-    //   let status = "";
-
-    //   if (persentase >= 100)
-    //     status = "🚨 <b>OVERBUDGET!</b> Kamu sudah melewati batas.";
-    //   else if (persentase >= 80)
-    //     status = "⚠️ <b>WASPADA!</b> Pengeluaran hampir menyentuh limit.";
-    //   else status = "✅ <b>AMAN.</b> Pengeluaranmu masih terkendali.";
-
-    //   const pesan =
-    //     `📈 <b>Status Anggaran Bulan Ini</b>\n\n` +
-    //     `💰 Budget: <b>${formatRupiah(totalBudget)}</b>\n` +
-    //     `💸 Terpakai: <b>${formatRupiah(totalPakai)}</b>\n` +
-    //     `📊 Persentase: <b>${persentase.toFixed(1)}%</b>\n\n` +
-    //     `${status}`;
-
-    //   await telegram.sendMessage(chatId, pesan, { parse_mode: "HTML" });
-    //   break;
-    // }
+      await telegram.sendMessage(chatId, pesanRiwayat, { parse_mode: "HTML" });
+      break;
+    }
 
     default:
       await telegram.sendMessage(
