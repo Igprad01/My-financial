@@ -10,7 +10,6 @@ export async function POST(request: NextRequest) {
     console.error('Error handling Telegram update:', error);
     return NextResponse.json({ ok:true})
   }
-
 }
 
 export async function GET() {
