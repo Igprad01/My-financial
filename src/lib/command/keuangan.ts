@@ -11,6 +11,51 @@ const formatRupiah = (number: number) => {
   }).format(number);
 };
 
+export const parseNominal = (input: string): number => {
+  if (!input) return NaN;
+  
+  let formatted = input.toLowerCase().trim();
+  let multiplier = 1;
+
+  if (formatted.endsWith('k') || formatted.endsWith('rb')) {
+    multiplier = 1000;
+    formatted = formatted.replace(/(k|rb)$/, '');
+  } else if (formatted.endsWith('ribu')) {
+    multiplier = 1000;
+    formatted = formatted.replace(/ribu$/, '');
+  } else if (formatted.endsWith('jt')) {
+    multiplier = 1000000;
+    formatted = formatted.replace(/jt$/, '');
+  } else if (formatted.endsWith('juta')) {
+    multiplier = 1000000;
+    formatted = formatted.replace(/juta$/, '');
+  } else if (formatted.endsWith('m')) {
+    multiplier = 1000000000;
+    formatted = formatted.replace(/m$/, '');
+  }
+
+  formatted = formatted.replace(/[^0-9.,]/g, '');
+
+  if (formatted.includes(',')) {
+    formatted = formatted.replace(/\./g, '');
+    formatted = formatted.replace(',', '.');
+  } else {
+    if (formatted.split('.').length > 2) {
+      formatted = formatted.replace(/\./g, '');
+    } else if (formatted.includes('.')) {
+      const parts = formatted.split('.');
+      if (parts[1].length === 3 && multiplier === 1) {
+        formatted = formatted.replace(/\./g, '');
+      }
+    }
+  }
+
+  const result = parseFloat(formatted);
+  if (isNaN(result)) return NaN;
+  
+  return Math.round(result * multiplier);
+};
+
 export async function handleKeuanganCommand(chatId: number, text: string) {
   const args = text.split(" ");
   const command = args[0].toLowerCase();
@@ -29,8 +74,17 @@ export async function handleKeuanganCommand(chatId: number, text: string) {
   switch (command) {
     case "/tambah":
     case "/keluar": {
-      const nominal = parseInt(args[1]);
-      const keterangan = args.slice(2).join(" ");
+      let nominalString = args[1] || "";
+      let keteranganArgsStart = 2;
+      const secondArg = args[2]?.toLowerCase();
+      
+      if (secondArg && ["k", "rb", "ribu", "jt", "juta", "m"].includes(secondArg)) {
+        nominalString += secondArg;
+        keteranganArgsStart = 3;
+      }
+      
+      const nominal = parseNominal(nominalString);
+      const keterangan = args.slice(keteranganArgsStart).join(" ");
 
       if (isNaN(nominal) || !keterangan) {
         return await telegram.sendMessage(
@@ -53,8 +107,17 @@ export async function handleKeuanganCommand(chatId: number, text: string) {
     }
 
     case "/pemasukan": {
-      const nominal = parseInt(args[1]);
-      const keterangan = args.slice(2).join(" ");
+      let nominalString = args[1] || "";
+      let keteranganArgsStart = 2;
+      const secondArg = args[2]?.toLowerCase();
+      
+      if (secondArg && ["k", "rb", "ribu", "jt", "juta", "m"].includes(secondArg)) {
+        nominalString += secondArg;
+        keteranganArgsStart = 3;
+      }
+      
+      const nominal = parseNominal(nominalString);
+      const keterangan = args.slice(keteranganArgsStart).join(" ");
 
       if (isNaN(nominal) || !keterangan) {
         return await telegram.sendMessage(
