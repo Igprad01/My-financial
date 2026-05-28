@@ -11,41 +11,48 @@ const formatRupiah = (number: number) => {
   }).format(number);
 };
 
+
+
 export const parseNominal = (input: string): number => {
   if (!input) return NaN;
   
   let formatted = input.toLowerCase().trim();
   let multiplier = 1;
 
-  if (formatted.endsWith('k') || formatted.endsWith('rb')) {
-    multiplier = 1000;
-    formatted = formatted.replace(/(k|rb)$/, '');
-  } else if (formatted.endsWith('ribu')) {
-    multiplier = 1000;
-    formatted = formatted.replace(/ribu$/, '');
-  } else if (formatted.endsWith('jt')) {
-    multiplier = 1000000;
-    formatted = formatted.replace(/jt$/, '');
-  } else if (formatted.endsWith('juta')) {
-    multiplier = 1000000;
-    formatted = formatted.replace(/juta$/, '');
-  } else if (formatted.endsWith('m')) {
-    multiplier = 1000000000;
-    formatted = formatted.replace(/m$/, '');
+  const suffixes = [
+    { regex: /(k|rb|ribu)$/, value: 1000 },
+    { regex: /(jt|juta)$/, value: 1000000 },
+    { regex: /m$/, value: 1000000000 },
+  ];
+
+  for (const suffix of suffixes) {
+    if (suffix.regex.test(formatted)) {
+      multiplier = suffix.value;
+      formatted = formatted.replace(suffix.regex, "");
+      break;
+    }
   }
 
-  formatted = formatted.replace(/[^0-9.,]/g, '');
+  formatted = formatted.replace(/[^0-9.,]/g, "");
 
-  if (formatted.includes(',')) {
-    formatted = formatted.replace(/\./g, '');
-    formatted = formatted.replace(',', '.');
-  } else {
-    if (formatted.split('.').length > 2) {
-      formatted = formatted.replace(/\./g, '');
-    } else if (formatted.includes('.')) {
-      const parts = formatted.split('.');
+  const hasComma = formatted.includes(",");
+
+  if (hasComma) {
+    formatted = formatted.replace(/\./g, "");
+    formatted = formatted.replace(",", ".");
+  }
+
+  if (!hasComma) {
+    const periodCount = (formatted.match(/\./g) || []).length;
+    
+    if (periodCount > 1) {
+      formatted = formatted.replace(/\./g, "");
+    }
+
+    if (periodCount === 1) {
+      const parts = formatted.split(".");
       if (parts[1].length === 3 && multiplier === 1) {
-        formatted = formatted.replace(/\./g, '');
+        formatted = formatted.replace(/\./g, "");
       }
     }
   }

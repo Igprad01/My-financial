@@ -1,6 +1,7 @@
 // src/types/telegram.ts (atau taruh di atas file bot-commands.ts)
 export interface TelegramUpdate {
   message?: {
+    photo: boolean;
     chat: { id: number };
     text?: string;
     from?: {

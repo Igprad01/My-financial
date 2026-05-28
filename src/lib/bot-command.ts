@@ -112,9 +112,45 @@ export async function handleUpdate(update: TelegramUpdate): Promise<void> {
             `📜 <b>Cek Riwayat pengeluaran</b> <code>/riwayat</code>\n` +
             `📈 <b>Status Boros:</b> <code>/limit</code> (Segera)\n` +
             `❓ <b>Bantuan:</b> <code>/help</code>\n\n` +
-            `<i>Contoh: /keluar 50000 Makan Siang</i>` +
+            `👤 <b>Info User (Email):</b> <code>/user</code>\n` +
+            `🔑 <b>Reset Password:</b> <code>/resetpassword [PasswordBaru]</code>\n\n` +
+            `<i>Contoh: /keluar 50000 Makan Siang</i>\n` +
           `❓ <b>/help</b> - Menampilkan pesan bantuan ini`,
         { parse_mode: "HTML" },
+      );
+      return;
+    }
+
+    if (text === "/user") {
+      await telegram.sendMessage(
+        chatId,
+        `👤 <b>Informasi Akun Anda</b>\n\n` +
+        `<b>Nama:</b> ${user.name}\n` +
+        `<b>Email:</b> ${user.email}\n\n` +
+        `<i>*Password Anda dienkripsi demi keamanan sehingga tidak bisa dimunculkan. Jika Anda lupa password, gunakan perintah: \n\n<code>/resetpassword [PasswordBaru]</code></i>`,
+        { parse_mode: "HTML" }
+      );
+      return;
+    }
+
+    if (text.startsWith("/resetpassword ")) {
+      const newPassword = text.replace("/resetpassword", "").trim();
+      if (!newPassword || newPassword.length < 5) {
+         await telegram.sendMessage(chatId, "❌ Password baru minimal harus 5 karakter.\n\nContoh: <code>/resetpassword rahasia123</code>", { parse_mode: "HTML" });
+         return;
+      }
+      
+      const newHashedPassword = await bcrypt.hash(newPassword, 10);
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { password: newHashedPassword }
+      });
+
+      await telegram.sendMessage(
+        chatId,
+        `✅ <b>Berhasil!</b> Password Anda telah berhasil direset. Silakan gunakan password baru ini untuk login ke dashboard.` +
+        `\n\nEmail Anda: <b>${user.email}</b>`,
+        { parse_mode: "HTML" }
       );
       return;
     }
