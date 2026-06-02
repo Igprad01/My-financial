@@ -12,3 +12,16 @@ services:
       - /app/.next
     # Override command untuk jaga-jaga
     command: npm run dev
+
+  # Tunneling Webhook secara otomatis di Docker
+  ngrok:
+    image: ngrok/ngrok:latest
+    # Forward dari port ngrok ke service 'web' port 3000
+    command: ["http", "web:3000"]
+    ports:
+      - "4040:4040" # Port UI dan API Ngrok (untuk melihat URL)
+    depends_on:
+      - web
+    # Authtoken diperlukan oleh versi Docker resmi dari Ngrok
+    environment:
+      NGROK_AUTHTOKEN: ${NGROK_AUTHTOKEN}

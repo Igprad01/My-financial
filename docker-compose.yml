@@ -6,4 +6,6 @@ services:
       target: runner # Menentukan bahwa ini build untuk production
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     restart: always

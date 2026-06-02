@@ -20,7 +20,7 @@ export async function handleUpdate(update: TelegramUpdate): Promise<void> {
   if (text === "/start") {
     if (user) {
       const isDev = process.env.NODE_ENV === "development";
-      const envTag = isDev ? "🛠️ [MODE DEV]" : "🚀 [MODE PROD]";
+      const envTag = isDev ? "🛠️ [MODE DEV]" : "🚀";
 
       await telegram.sendMessage(
         chatId,
