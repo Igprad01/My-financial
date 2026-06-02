@@ -11,17 +11,20 @@ if (!token) {
 
 async function setWebhook() {
   try {
-   
-    let publicUrl = '';
-    try {
-      const ngrokRes = await fetch('http://127.0.0.1:4040/api/tunnels');
-      const ngrokData = await ngrokRes.json();
-      if (ngrokData.tunnels && ngrokData.tunnels.length > 0) {
-        publicUrl = ngrokData.tunnels[0].public_url;
+    let publicUrl = process.argv[2]; // Ambil URL dari argumen (misal untuk Vercel)
+
+    if (!publicUrl) {
+      // Ambil URL dari ngrok lokal yang sedang berjalan di port 4040
+      try {
+        const ngrokRes = await fetch('http://127.0.0.1:4040/api/tunnels');
+        const ngrokData = await ngrokRes.json();
+        if (ngrokData.tunnels && ngrokData.tunnels.length > 0) {
+          publicUrl = ngrokData.tunnels[0].public_url;
+        }
+      } catch (e) {
+        console.log('⚠️ Ngrok tidak terdeteksi berjalan, menggunakan URL default localhost (tidak disarankan).');
+        publicUrl = 'http://localhost:3000';
       }
-    } catch (e) {
-      console.log('⚠️ Ngrok tidak terdeteksi berjalan, menggunakan URL default localhost (tidak disarankan).');
-      publicUrl = 'http://localhost:3000';
     }
 
     if (!publicUrl.includes("https")) {
