@@ -204,6 +204,17 @@ export async function handleKeuanganCommand(chatId: number, text: string) {
       break;
     }
 
+    case "/report": {
+      const dashboardUrl = process.env.NEXT_PUBLIC_APP_URL || "";
+      const pesan = `🔗 *Laporan Keuangan FinancialKu*
+
+Silakan klik link di bawah ini untuk login dan melihat laporan keuangan Anda:
+${dashboardUrl}/login`;
+
+      await telegram.sendMessage(chatId, pesan, { parse_mode: "Markdown" });
+      break;
+    }
+
     default:
       await telegram.sendMessage(
         chatId,
