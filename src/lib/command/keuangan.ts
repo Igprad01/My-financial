@@ -108,7 +108,31 @@ export async function handleKeuanganCommand(chatId: number, text: string) {
         },
       });
 
-      const pesan = `💸 *Pengeluaran Dicatat*\n\n💰 Nominal: ${formatRupiah(Number(transaksi.jumlah))}\n📝 Ket: ${keterangan}\n📅 Tanggal: ${transaksi.tanggal.toLocaleDateString("id-ID")}`;
+      // Check limit anggaran bulanan
+      const dateNow = new Date();
+      const firstDay = new Date(dateNow.getFullYear(), dateNow.getMonth(), 1);
+      
+      const allExt = await prisma.transaksi.aggregate({
+         where: { penggunaId: user.id, jenis: "pengeluaran", tanggal: { gte: firstDay } },
+         _sum: { jumlah: true }
+      });
+      const totalPengeluaranBulanIni = Number(allExt._sum.jumlah || 0);
+
+      const cekAnggaran = await prisma.anggaran.findFirst({
+         where: { penggunaId: user.id }
+      });
+
+      let warningMsg = "";
+      if (cekAnggaran) {
+         const batas = Number(cekAnggaran.jumlah);
+         if (totalPengeluaranBulanIni > batas) {
+            warningMsg = `\n\n⚠️ *Peringatan:* Pengeluaran bulan ini (${formatRupiah(totalPengeluaranBulanIni)}) telah melebihi batas anggaran (${formatRupiah(batas)}).`;
+         } else if (totalPengeluaranBulanIni > batas * 0.8) {
+            warningMsg = `\n\n⚠️ *Hati-hati:* Pengeluaran bulan ini (${formatRupiah(totalPengeluaranBulanIni)}) sudah mendekati batas anggaran (${formatRupiah(batas)}).`;
+         }
+      }
+
+      const pesan = `💸 *Pengeluaran Dicatat*\n\n💰 Nominal: ${formatRupiah(Number(transaksi.jumlah))}\n📝 Ket: ${keterangan}\n📅 Tanggal: ${transaksi.tanggal.toLocaleDateString("id-ID")}${warningMsg}`;
       await telegram.sendMessage(chatId, pesan, { parse_mode: "Markdown" });
       break;
     }
@@ -204,7 +228,7 @@ export async function handleKeuanganCommand(chatId: number, text: string) {
       break;
     }
 
-    case "/report": {
+    case "/Report": {
       const dashboardUrl = process.env.NEXT_PUBLIC_APP_URL || "";
       const pesan = `🔗 *Laporan Keuangan FinancialKu*
 
