@@ -11,11 +11,9 @@ const formatRupiah = (number: number) => {
   }).format(number);
 };
 
-
-
 export const parseNominal = (input: string): number => {
   if (!input) return NaN;
-  
+
   let formatted = input.toLowerCase().trim();
   let multiplier = 1;
 
@@ -44,7 +42,7 @@ export const parseNominal = (input: string): number => {
 
   if (!hasComma) {
     const periodCount = (formatted.match(/\./g) || []).length;
-    
+
     if (periodCount > 1) {
       formatted = formatted.replace(/\./g, "");
     }
@@ -59,7 +57,7 @@ export const parseNominal = (input: string): number => {
 
   const result = parseFloat(formatted);
   if (isNaN(result)) return NaN;
-  
+
   return Math.round(result * multiplier);
 };
 
@@ -84,12 +82,15 @@ export async function handleKeuanganCommand(chatId: number, text: string) {
       let nominalString = args[1] || "";
       let keteranganArgsStart = 2;
       const secondArg = args[2]?.toLowerCase();
-      
-      if (secondArg && ["k", "rb", "ribu", "jt", "juta", "m"].includes(secondArg)) {
+
+      if (
+        secondArg &&
+        ["k", "rb", "ribu", "jt", "juta", "m"].includes(secondArg)
+      ) {
         nominalString += secondArg;
         keteranganArgsStart = 3;
       }
-      
+
       const nominal = parseNominal(nominalString);
       const keterangan = args.slice(keteranganArgsStart).join(" ");
 
@@ -111,25 +112,29 @@ export async function handleKeuanganCommand(chatId: number, text: string) {
       // Check limit anggaran bulanan
       const dateNow = new Date();
       const firstDay = new Date(dateNow.getFullYear(), dateNow.getMonth(), 1);
-      
+
       const allExt = await prisma.transaksi.aggregate({
-         where: { penggunaId: user.id, jenis: "pengeluaran", tanggal: { gte: firstDay } },
-         _sum: { jumlah: true }
+        where: {
+          penggunaId: user.id,
+          jenis: "pengeluaran",
+          tanggal: { gte: firstDay },
+        },
+        _sum: { jumlah: true },
       });
       const totalPengeluaranBulanIni = Number(allExt._sum.jumlah || 0);
 
       const cekAnggaran = await prisma.anggaran.findFirst({
-         where: { penggunaId: user.id }
+        where: { penggunaId: user.id },
       });
 
       let warningMsg = "";
       if (cekAnggaran) {
-         const batas = Number(cekAnggaran.jumlah);
-         if (totalPengeluaranBulanIni > batas) {
-            warningMsg = `\n\n⚠️ *Peringatan:* Pengeluaran bulan ini (${formatRupiah(totalPengeluaranBulanIni)}) telah melebihi batas anggaran (${formatRupiah(batas)}).`;
-         } else if (totalPengeluaranBulanIni > batas * 0.8) {
-            warningMsg = `\n\n⚠️ *Hati-hati:* Pengeluaran bulan ini (${formatRupiah(totalPengeluaranBulanIni)}) sudah mendekati batas anggaran (${formatRupiah(batas)}).`;
-         }
+        const batas = Number(cekAnggaran.jumlah);
+        if (totalPengeluaranBulanIni > batas) {
+          warningMsg = `\n\n⚠️ *Peringatan:* Pengeluaran bulan ini (${formatRupiah(totalPengeluaranBulanIni)}) telah melebihi batas anggaran (${formatRupiah(batas)}).`;
+        } else if (totalPengeluaranBulanIni > batas * 0.8) {
+          warningMsg = `\n\n⚠️ *Hati-hati:* Pengeluaran bulan ini (${formatRupiah(totalPengeluaranBulanIni)}) sudah mendekati batas anggaran (${formatRupiah(batas)}).`;
+        }
       }
 
       const pesan = `💸 *Pengeluaran Dicatat*\n\n💰 Nominal: ${formatRupiah(Number(transaksi.jumlah))}\n📝 Ket: ${keterangan}\n📅 Tanggal: ${transaksi.tanggal.toLocaleDateString("id-ID")}${warningMsg}`;
@@ -141,12 +146,15 @@ export async function handleKeuanganCommand(chatId: number, text: string) {
       let nominalString = args[1] || "";
       let keteranganArgsStart = 2;
       const secondArg = args[2]?.toLowerCase();
-      
-      if (secondArg && ["k", "rb", "ribu", "jt", "juta", "m"].includes(secondArg)) {
+
+      if (
+        secondArg &&
+        ["k", "rb", "ribu", "jt", "juta", "m"].includes(secondArg)
+      ) {
         nominalString += secondArg;
         keteranganArgsStart = 3;
       }
-      
+
       const nominal = parseNominal(nominalString);
       const keterangan = args.slice(keteranganArgsStart).join(" ");
 
@@ -199,8 +207,8 @@ export async function handleKeuanganCommand(chatId: number, text: string) {
     case "/riwayat": {
       const listTransaksi = await prisma.transaksi.findMany({
         where: { penggunaId: user.id },
-        orderBy: { createdAt: "desc" }, 
-        take: 5, 
+        orderBy: { createdAt: "desc" },
+        take: 5,
         include: { kategori: true },
       });
 
@@ -229,13 +237,28 @@ export async function handleKeuanganCommand(chatId: number, text: string) {
     }
 
     case "/report": {
-      const dashboardUrl = process.env.NEXT_PUBLIC_APP_URL || "";
+      // Gunakan fallback URL jika env tidak terbaca
+      const dashboardUrl =
+        process.env.NEXT_PUBLIC_APP_URL ||
+        "https://my-financial-woad.vercel.app";
+
       const pesan = `🔗 *Laporan Keuangan FinancialKu*
 
-Silakan klik link di bawah ini untuk login dan melihat laporan keuangan Anda:
-${dashboardUrl}/login`;
+Silakan klik tombol di bawah ini untuk masuk ke dashboard dan melihat laporan keuangan Anda.`;
 
-      await telegram.sendMessage(chatId, pesan, { parse_mode: "Markdown" });
+      await telegram.sendMessage(chatId, pesan, {
+        parse_mode: "Markdown",
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: "🚀 Buka FinancialKu",
+                url: `${dashboardUrl}/login`,
+              },
+            ],
+          ],
+        },
+      });
       break;
     }
 
