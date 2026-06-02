@@ -19,12 +19,15 @@ export async function handleUpdate(update: TelegramUpdate): Promise<void> {
 
   if (text === "/start") {
     if (user) {
+      const isDev = process.env.NODE_ENV === "development";
+      const envTag = isDev ? "🛠️ [MODE DEV]" : "🚀 [MODE PROD]";
+
       await telegram.sendMessage(
         chatId,
-        `👋 <b>Halo, ${user.name}!</b>\n\n` +
+        `👋 <b>Halo, ${user.name}!</b> ${envTag}\n\n` +
           `Senang melihatmu kembali. Gunakan bot ini untuk memantau keuanganmu agar tidak bocor alus! 💸\n\n` +
-          `<b>📌 Cara Pakai: ketik  <code>/help</code></b>\n\n` +
-        { parse_mode: "HTML" },
+          `<b>📌 Cara Pakai: ketik  <code>/help</code></b>\n\n`,
+        { parse_mode: "HTML" }
       );
       return;
     }
@@ -70,6 +73,16 @@ export async function handleUpdate(update: TelegramUpdate): Promise<void> {
           email: email,
           password: hashedPassword,
           telegramChatId: chatId.toString(),
+          kategori: {
+            create: [
+              { nama: 'Makanan & Minuman', jenis: 'pengeluaran', ikon: '🍔', warna: '#FF6B6B' },
+              { nama: 'Transportasi', jenis: 'pengeluaran', ikon: '🚗', warna: '#4ECDC4' },
+              { nama: 'Belanja', jenis: 'pengeluaran', ikon: '🛒', warna: '#96CEB4' },
+              { nama: 'Tagihan & Utilitas', jenis: 'pengeluaran', ikon: '📄', warna: '#FFEEAD' },
+              { nama: 'Gaji', jenis: 'pemasukan', ikon: '💰', warna: '#45B7D1' },
+              { nama: 'Bonus', jenis: 'pemasukan', ikon: '🎁', warna: '#D4A5A5' },
+            ]
+          }
         },
       });
 

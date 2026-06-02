@@ -1,0 +1,14 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev # Target untuk environment development
+    volumes:
+      # Sinkronisasi kode dari lokal ke container (hot-reloading)
+      - .:/app
+      # Hindari folder node_modules host menimpa node_modules di dalam container
+      - /app/node_modules
+      - /app/.next
+    # Override command untuk jaga-jaga
+    command: npm run dev

@@ -1,0 +1,9 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner # Menentukan bahwa ini build untuk production
+    ports:
+      - "3000:3000"
+    restart: always

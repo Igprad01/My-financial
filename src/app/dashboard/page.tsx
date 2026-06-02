@@ -8,7 +8,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
-  // Simulate loading state
+  
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);
@@ -16,9 +16,14 @@ export default function DashboardPage() {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleLogout = () => {
-    // Add logout logic here later
-    router.push('/login');
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      router.push('/login');
+      router.refresh();
+    } catch (error) {
+      console.error('Logout failed', error);
+    }
   };
 
   if (loading) {
