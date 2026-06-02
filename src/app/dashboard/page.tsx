@@ -41,7 +41,7 @@ export default async function DashboardPage() {
     orderBy: { tanggal: 'desc' },
   });
 
-  // 3. Hitung total pemasukan dan pengeluaran
+
   let totalIncome = 0;
   let totalExpense = 0;
 
