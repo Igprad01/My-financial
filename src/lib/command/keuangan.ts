@@ -228,7 +228,7 @@ export async function handleKeuanganCommand(chatId: number, text: string) {
       break;
     }
 
-    case "/Report": {
+    case "/report": {
       const dashboardUrl = process.env.NEXT_PUBLIC_APP_URL || "";
       const pesan = `🔗 *Laporan Keuangan FinancialKu*
 
