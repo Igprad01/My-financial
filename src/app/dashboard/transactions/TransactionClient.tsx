@@ -15,9 +15,12 @@ export default function TransactionClient({ transactions }: { transactions: Tran
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('Semua');
   const [categoryFilter, setCategoryFilter] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
-  // Dummy categories for UI filter based on image, real categories are passed down through transactions but you could aggregate them
-  const categories = ['Belanja', 'Gaji', 'Investasi', 'Hiburan', 'Makan', 'Lainnya'];
+  // Extract unique categories from real data
+  const categories = Array.from(new Set(transactions.map(t => t.kategori?.nama).filter(Boolean))) as string[];
+  if (categories.length === 0) categories.push('Belanja', 'Gaji', 'Lainnya'); 
 
   const filteredTransactions = transactions.filter(trx => {
     let matches = true;
@@ -31,6 +34,14 @@ export default function TransactionClient({ transactions }: { transactions: Tran
     }
     if (categoryFilter && trx.kategori?.nama.toLowerCase() !== categoryFilter.toLowerCase()) {
       matches = false;
+    }
+    if (startDate) {
+      if (new Date(trx.tanggal) < new Date(startDate)) matches = false;
+    }
+    if (endDate) {
+      const endD = new Date(endDate);
+      endD.setHours(23, 59, 59, 999); // Set to end of day
+      if (new Date(trx.tanggal) > endD) matches = false;
     }
     return matches;
   });
@@ -53,6 +64,14 @@ export default function TransactionClient({ transactions }: { transactions: Tran
     const d = new Date(date);
     return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
   };
+
+  const handleReset = () => {
+    setSearch('');
+    setTypeFilter('Semua');
+    setCategoryFilter('');
+    setStartDate('');
+    setEndDate('');
+  }
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 max-w-7xl mx-auto py-8 sm:px-6 lg:px-8 bg-[#0f172a] text-slate-300 min-h-screen">
@@ -99,7 +118,7 @@ export default function TransactionClient({ transactions }: { transactions: Tran
 
           <div className="mb-6">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Kategori</h3>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="flex flex-wrap gap-2">
               {categories.map(cat => (
                 <button 
                   key={cat}
@@ -115,14 +134,24 @@ export default function TransactionClient({ transactions }: { transactions: Tran
           <div className="mb-6">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Rentang Waktu</h3>
             <div className="space-y-3">
-              <input type="date" className="w-full bg-[#0f172a] border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-[#34d399]" />
+              <input 
+                type="date" 
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full bg-[#0f172a] border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-[#34d399]" 
+              />
               <div className="text-center text-xs text-slate-500">sampai</div>
-              <input type="date" className="w-full bg-[#0f172a] border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-[#34d399]" />
+              <input 
+                type="date" 
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full bg-[#0f172a] border border-slate-700 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-[#34d399]" 
+              />
             </div>
           </div>
 
-          <button className="w-full bg-[#34d399] hover:bg-[#10b981] text-slate-900 font-bold py-2 px-4 rounded-lg transition-colors">
-            Terapkan Filter
+          <button onClick={handleReset} className="w-full bg-[#34d399] hover:bg-[#10b981] text-slate-900 font-bold py-2 px-4 rounded-lg transition-colors">
+            Reset Filter
           </button>
         </div>
 
