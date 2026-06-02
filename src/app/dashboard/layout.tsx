@@ -24,7 +24,7 @@ export default function DashboardLayout({
                 <Link href="/dashboard" className="text-sm font-medium text-slate-400 hover:text-white transition-colors py-2">
                   Home
                 </Link>
-                <Link href="/dashboard/transactions" className="text-sm font-bold text-white border-b-2 border-[#34d399] py-2">
+                <Link href="/dashboard/transactions" className="text-sm font-bold text-white py-2">
                   History
                 </Link>
                 <Link href="/dashboard/budgets" className="text-sm font-medium text-slate-400 hover:text-white transition-colors py-2">
