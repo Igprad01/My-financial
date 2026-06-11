@@ -262,6 +262,49 @@ Silakan klik tombol di bawah ini untuk masuk ke dashboard dan melihat laporan ke
       break;
     }
 
+    case "/reset": {
+      await telegram.sendChatAction(chatId, "upload_document");
+
+      const allTransactions = await prisma.transaksi.findMany({
+        where: { penggunaId: user.id },
+        include: { kategori: true },
+        orderBy: { tanggal: "asc" },
+      });
+
+      if (allTransactions.length === 0) {
+        await telegram.sendMessage(chatId, "⚠️ Tidak ada data transaksi yang bisa di-reset.");
+        break;
+      }
+
+      let csvContent = "Tanggal,Jenis,Kategori,Jumlah,Keterangan\n";
+      allTransactions.forEach(trx => {
+        const tanggal = trx.tanggal.toISOString().split("T")[0];
+        const jenis = trx.jenis;
+        const kategori = trx.kategori ? `"${trx.kategori.nama.replace(/"/g, '""')}"` : "";
+        const jumlah = trx.jumlah.toString();
+        const keterangan = trx.keterangan ? `"${trx.keterangan.replace(/"/g, '""')}"` : "";
+        csvContent += `${tanggal},${jenis},${kategori},${jumlah},${keterangan}\n`;
+      });
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const filename = `backup_transaksi_${new Date().toISOString().split("T")[0]}.csv`;
+      
+      const sendResult = await telegram.sendDocument(
+        chatId,
+        blob,
+        filename,
+        "📁 *Backup Data Transaksi*\n\n✅ Ini adalah rekap seluruh datamu sebelum direset."
+      );
+
+      if (sendResult) {
+        await prisma.transaksi.deleteMany({ where: { penggunaId: user.id } });
+        await telegram.sendMessage(chatId, "🗑️ *Data Berhasil Direset*\n\nSeluruh data transaksi kamu telah dihapus, dan rekap barusan sudah dikirim.", { parse_mode: "Markdown" });
+      } else {
+        await telegram.sendMessage(chatId, "❌ *Gagal Mereset Data*\n\nTerjadi kesalahan saat membuat backup, sehingga data tidak jadi dihapus.", { parse_mode: "Markdown" });
+      }
+      break;
+    }
+
     default:
       await telegram.sendMessage(
         chatId,

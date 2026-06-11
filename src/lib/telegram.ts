@@ -37,7 +37,7 @@ export const telegram = {
     });
   },
 
-  async sendChatAction(chatId: number | string, action: "typing" | "upload_photo" = "typing") {
+  async sendChatAction(chatId: number | string, action: "typing" | "upload_photo" | "upload_document" = "typing") {
     return await callApi("sendChatAction", {
       chat_id: chatId,
       action: action,
@@ -49,5 +49,29 @@ export const telegram = {
       chat_id: chatId,
       message_id: messageId,
     });
+  },
+
+  async sendDocument(chatId: number | string, file: Blob | File, filename: string, caption?: string) {
+    if (!TOKEN) return null;
+    const formData = new FormData();
+    formData.append("chat_id", chatId.toString());
+    formData.append("document", file, filename);
+    if (caption) {
+      formData.append("caption", caption);
+      formData.append("parse_mode", "HTML");
+    }
+
+    try {
+      const response = await fetch(`${BASE_URL}/sendDocument`, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await response.json();
+      if (!data.ok) console.error(`⚠️ Telegram API Error [sendDocument]:`, data.description);
+      return data;
+    } catch (error) {
+      console.error(`🔥 Network Error [sendDocument]:`, error);
+      return null;
+    }
   }
 };
