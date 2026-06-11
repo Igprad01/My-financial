@@ -313,6 +313,95 @@ Silakan klik tombol di bawah ini untuk masuk ke dashboard dan melihat laporan ke
       break;
     }
 
+    case "/anggaran": {
+      let nominalString = args[1] || "";
+      const secondArg = args[2]?.toLowerCase();
+      if (secondArg && ["k", "rb", "ribu", "jt", "juta", "m"].includes(secondArg)) {
+        nominalString += secondArg;
+      }
+
+      const nominal = parseNominal(nominalString);
+      if (isNaN(nominal) || nominal <= 0) {
+        return await telegram.sendMessage(
+          chatId,
+          "⚠️ Format salah! Gunakan: `/anggaran [nominal]`\nContoh: `/anggaran 2000000`",
+          { parse_mode: "Markdown" }
+        );
+      }
+
+      const existingAnggaran = await prisma.anggaran.findFirst({
+        where: { penggunaId: user.id },
+      });
+
+      if (existingAnggaran) {
+        await prisma.anggaran.update({
+          where: { id: existingAnggaran.id },
+          data: { jumlah: nominal },
+        });
+      } else {
+        await prisma.anggaran.create({
+          data: { penggunaId: user.id, jumlah: nominal },
+        });
+      }
+
+      await telegram.sendMessage(
+        chatId,
+        `🎯 *Anggaran Bulanan Berhasil Diatur*\n\nBatas limit pengeluaran bulananmu sekarang adalah **${formatRupiah(nominal)}**.`,
+        { parse_mode: "Markdown" }
+      );
+      break;
+    }
+
+    case "/limit": {
+      const cekAnggaran = await prisma.anggaran.findFirst({
+        where: { penggunaId: user.id },
+      });
+
+      if (!cekAnggaran) {
+        return await telegram.sendMessage(
+          chatId,
+          "⚠️ Kamu belum menetapkan batas anggaran bulanan.\nGunakan: `/anggaran [nominal]`",
+          { parse_mode: "Markdown" }
+        );
+      }
+
+      const batas = Number(cekAnggaran.jumlah);
+      
+      const dateNow = new Date();
+      const firstDay = new Date(dateNow.getFullYear(), dateNow.getMonth(), 1);
+
+      const allExt = await prisma.transaksi.aggregate({
+        where: {
+          penggunaId: user.id,
+          jenis: "pengeluaran",
+          tanggal: { gte: firstDay },
+        },
+        _sum: { jumlah: true },
+      });
+      const totalPengeluaranBulanIni = Number(allExt._sum.jumlah || 0);
+
+      const sisaBatas = batas - totalPengeluaranBulanIni;
+      let statusIcon = "✅";
+      let statusText = "Aman";
+
+      if (totalPengeluaranBulanIni > batas) {
+        statusIcon = "❌";
+        statusText = "Over Limit";
+      } else if (totalPengeluaranBulanIni > batas * 0.8) {
+        statusIcon = "⚠️";
+        statusText = "Hampir Habis";
+      }
+
+      const pesan = `🎯 *Status Anggaran Bulan Ini*\n\n` +
+        `📉 *Batas Anggaran:* ${formatRupiah(batas)}\n` +
+        `💸 *Pengeluaran:* ${formatRupiah(totalPengeluaranBulanIni)}\n` +
+        `--- \n` +
+        `💰 *Sisa Anggaran:* ${formatRupiah(sisaBatas)}\n` +
+        `Status: ${statusIcon} ${statusText}`;
+
+      await telegram.sendMessage(chatId, pesan, { parse_mode: "Markdown" });
+      break;
+    }
     case "/reset": {
       await telegram.sendChatAction(chatId, "upload_document");
 

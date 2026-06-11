@@ -127,7 +127,8 @@ export async function handleUpdate(update: TelegramUpdate): Promise<void> {
             `➖ <b>Catat Keluar:</b> <code>/keluar [nominal] [ket]</code>\n` +
             `📊 <b>Cek Saldo:</b> <code>/saldo</code>\n` +
             `📜 <b>Cek Riwayat:</b> <code>/riwayat</code>\n` +
-            `🎯 <b>Batas Limit/Anggaran: (Coming soon)</b>\n` +
+            `🎯 <b>Set Anggaran:</b> <code>/anggaran [nominal]</code>\n` +
+            `📊 <b>Cek Limit Anggaran:</b> <code>/limit</code>\n` +
             `❓ <b>Bantuan:</b> <code>/help</code>\n\n` +
             `👤 <b>Info User (Email):</b> <code>/user</code>\n` +
             `<b> Report:</b><code>/report</code>\n` +
