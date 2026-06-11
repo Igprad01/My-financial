@@ -61,6 +61,46 @@ export const parseNominal = (input: string): number => {
   return Math.round(result * multiplier);
 };
 
+async function findKategoriId(penggunaId: number, keterangan: string, jenis: "pengeluaran" | "pemasukan") {
+  const categories = await prisma.kategori.findMany({
+    where: { penggunaId, jenis }
+  });
+
+  const lowerKet = keterangan.toLowerCase();
+  let targetKategoriName = "";
+
+  if (jenis === "pengeluaran") {
+    if (/(makan|minum|sarapan|siang|malam|nasi|kopi|snack|jajan|food|drink|warteg|roti|kue)/.test(lowerKet)) {
+      targetKategoriName = "Makanan & Minuman";
+    } else if (/(gojek|grab|bensin|parkir|tol|kereta|krl|mrt|bus|transport|ojol|maxim)/.test(lowerKet)) {
+      targetKategoriName = "Transportasi";
+    } else if (/(belanja|baju|sepatu|indomaret|alfamart|supermarket|skincare|sabun|shopee|tokopedia)/.test(lowerKet)) {
+      targetKategoriName = "Belanja";
+    } else if (/(listrik|air|internet|wifi|kos|kontrakan|pajak|tagihan|pulsa|kuota|bpjs)/.test(lowerKet)) {
+      targetKategoriName = "Tagihan & Utilitas";
+    }
+  } else {
+    if (/(gaji|upah|salary|bayaran)/.test(lowerKet)) {
+      targetKategoriName = "Gaji";
+    } else if (/(bonus|thr|hadiah|pemberian)/.test(lowerKet)) {
+      targetKategoriName = "Bonus";
+    }
+  }
+
+  if (targetKategoriName) {
+    const found = categories.find(c => c.nama === targetKategoriName);
+    if (found) return found.id;
+  }
+
+  for (const cat of categories) {
+    if (lowerKet.includes(cat.nama.toLowerCase())) {
+      return cat.id;
+    }
+  }
+
+  return null;
+}
+
 export async function handleKeuanganCommand(chatId: number, text: string) {
   const args = text.split(" ");
   const command = args[0].toLowerCase();
@@ -100,13 +140,18 @@ export async function handleKeuanganCommand(chatId: number, text: string) {
           "⚠️ Format salah! Gunakan: `/keluar [nominal] [keterangan]`\nContoh: `/keluar 50000 Makan siang`",
         );
       }
+
+      const kategoriId = await findKategoriId(user.id, keterangan, "pengeluaran");
+
       const transaksi = await prisma.transaksi.create({
         data: {
           penggunaId: user.id,
           jenis: "pengeluaran",
           jumlah: nominal,
           keterangan: keterangan,
+          kategoriId: kategoriId,
         },
+        include: { kategori: true }
       });
 
       // Check limit anggaran bulanan
@@ -137,7 +182,8 @@ export async function handleKeuanganCommand(chatId: number, text: string) {
         }
       }
 
-      const pesan = `💸 *Pengeluaran Dicatat*\n\n💰 Nominal: ${formatRupiah(Number(transaksi.jumlah))}\n📝 Ket: ${keterangan}\n📅 Tanggal: ${transaksi.tanggal.toLocaleDateString("id-ID")}${warningMsg}`;
+      const katName = transaksi.kategori ? ` [${transaksi.kategori.nama}]` : "";
+      const pesan = `💸 *Pengeluaran Dicatat*\n\n💰 Nominal: ${formatRupiah(Number(transaksi.jumlah))}\n📝 Ket: ${keterangan}${katName}\n📅 Tanggal: ${transaksi.tanggal.toLocaleDateString("id-ID")}${warningMsg}`;
       await telegram.sendMessage(chatId, pesan, { parse_mode: "Markdown" });
       break;
     }
@@ -165,16 +211,21 @@ export async function handleKeuanganCommand(chatId: number, text: string) {
         );
       }
 
+      const kategoriId = await findKategoriId(user.id, keterangan, "pemasukan");
+
       const transaksi = await prisma.transaksi.create({
         data: {
           penggunaId: user.id,
           jenis: "pemasukan",
           jumlah: nominal,
           keterangan: keterangan,
+          kategoriId: kategoriId,
         },
+        include: { kategori: true }
       });
 
-      const pesan = `✅ *Pemasukan Dicatat*\n\n💰 Nominal: ${formatRupiah(Number(transaksi.jumlah))}\n📝 Ket: ${keterangan}`;
+      const katName = transaksi.kategori ? ` [${transaksi.kategori.nama}]` : "";
+      const pesan = `✅ *Pemasukan Dicatat*\n\n💰 Nominal: ${formatRupiah(Number(transaksi.jumlah))}\n📝 Ket: ${keterangan}${katName}`;
       await telegram.sendMessage(chatId, pesan, { parse_mode: "Markdown" });
       break;
     }
