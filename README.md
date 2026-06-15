@@ -1,36 +1,102 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# My-financial 💰
 
-## Getting Started
+A full-stack financial tracking application built with Next.js, Prisma, and Tailwind CSS. The system integrates a Telegram Bot for seamless financial data entry, an AI-powered assistant using Google Generative AI, and a modern dashboard to visualize and manage all your transactions.
 
-First, run the development server:
+## 🚀 Features
+
+- **Financial Dashboard**: A sleek, dark-themed UI to monitor and analyze personal finances and track transactions.
+- **Telegram Bot Integration**: Track expenses and manage financial data directly through a Telegram Bot. Supports quick data entry, report generation, and account reset commands.
+- **AI-Powered Insights**: Uses Google Generative AI to provide smart recommendations and suggestions based on financial data.
+- **Authentication System**: Secure user authentication handled internally using `bcrypt` (password hashing) and `jose` (JWT).
+- **Database Management**: Robust database schema powered by Prisma ORM.
+- **Docker Support**: Containerized environment for easy development and consistent production deployment.
+
+## 🛠️ Tech Stack
+
+- **Framework**: [Next.js](https://nextjs.org/) (App Router, React 19)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **Database ORM**: [Prisma](https://www.prisma.io/)
+- **Authentication**: `bcrypt`, `jose`
+- **AI Integration**: `@google/generative-ai`
+- **Containerization**: Docker & Docker Compose
+
+## 📦 Installation & Local Setup
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/your-username/my-financial.git
+cd my-financial
+```
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+### 3. Environment Variables
+
+Create a `.env` file in the root directory and configure the necessary variables (refer to local setup needs):
+
+```env
+# Database connection string
+DATABASE_URL="your-database-url"
+
+# Telegram Bot Token (from BotFather)
+TELEGRAM_BOT_TOKEN="your-bot-token"
+
+# JWT Secret for Auth
+JWT_SECRET="your-jwt-secret"
+
+# Google Generative AI API Key
+GEMINI_API_KEY="your-gemini-api-key"
+```
+
+### 4. Database Setup
+
+Run the Prisma migrations to initialize the database schema:
+
+```bash
+npx prisma migrate dev
+```
+
+### 5. Run the Application Local Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The application will be available at [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🤖 Telegram Bot Configuration
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The project includes custom scripts to manage the Telegram Bot hooks and local polling:
 
-## Learn More
+- **Run bot via polling (Development)**:
+  ```bash
+  node polling-bot.js
+  ```
+- **Set Bot Webhook (Production)**:
+  Configure your webhook to point to the production Vercel domain.
+  ```bash
+  node set-webhook.js
+  ```
 
-To learn more about Next.js, take a look at the following resources:
+## 🐳 Docker Deployment
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The project provides both development and production Docker Compose files.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Development Environment
+```bash
+docker-compose -f docker-compose.dev.yml up -d
+```
 
-## Deploy on Vercel
+### Production Environment
+```bash
+docker-compose up -d --build
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📝 License
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This project is licensed under the MIT License.
