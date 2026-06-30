@@ -110,7 +110,7 @@ export async function handleUpdate(update: TelegramUpdate): Promise<void> {
       "/reset",
       "/dashboard",
     ];
-    const isFinancialCommand = commands.some((cmd) => text.startsWith(cmd));
+    const isFinancialCommand = commands.some((cmd) => text === cmd || text.startsWith(cmd + " "));
 
     if (isFinancialCommand) {
       await handleKeuanganCommand(chatId, text);
@@ -155,7 +155,7 @@ export async function handleUpdate(update: TelegramUpdate): Promise<void> {
       return;
     }
 
-    if (text.startsWith("/resetpassword ")) {
+    if (text.startsWith("/resetpassword")) {
       const newPassword = text.replace("/resetpassword", "").trim();
       if (!newPassword || newPassword.length < 5) {
          await telegram.sendMessage(chatId, "❌ Password baru minimal harus 5 karakter.\n\nContoh: <code>/resetpassword rahasia123</code>", { parse_mode: "HTML" });
