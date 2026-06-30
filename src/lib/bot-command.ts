@@ -108,6 +108,7 @@ export async function handleUpdate(update: TelegramUpdate): Promise<void> {
       "/limit",
       "/anggaran",
       "/reset",
+      "/dashboard",
     ];
     const isFinancialCommand = commands.some((cmd) => text.startsWith(cmd));
 
@@ -131,6 +132,7 @@ export async function handleUpdate(update: TelegramUpdate): Promise<void> {
             `📊 <b>Cek Limit Anggaran:</b> <code>/limit</code>\n` +
             `❓ <b>Bantuan:</b> <code>/help</code>\n\n` +
             `👤 <b>Info User (Email):</b> <code>/user</code>\n` +
+            `💻 <b>Dashboard:</b> <code>/dashboard</code>\n` +
             `<b> Report:</b><code>/report</code>\n` +
             `🔑 <b>Reset Password:</b> <code>/resetpassword [PasswordBaru]</code>\n` +
             `🗑️ <b>Reset Data Transaksi:</b> <code>/reset</code>\n\n` +

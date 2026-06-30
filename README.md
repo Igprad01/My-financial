@@ -20,6 +20,51 @@ A full-stack financial tracking application built with Next.js, Prisma, and Tail
 - **AI Integration**: `@google/generative-ai`
 - **Containerization**: Docker & Docker Compose
 
+## 🏗️ System Architecture
+
+```mermaid
+graph TD
+    %% Entities
+    User([User])
+    TelegramBotClient([Telegram App])
+    
+    %% Next.js Application
+    subgraph "My-financial Application (Next.js)"
+        UI[Next.js Frontend UI]
+        APIRoutes[Next.js API Routes / Server Actions]
+        BotHandlers[Bot Command Handlers]
+        Prisma[Prisma ORM]
+    end
+
+    %% External Services
+    Gemini[Google Generative AI]
+    DB[(MySQL Database)]
+    TelegramAPI[Telegram Bot API]
+
+    %% Relationships
+    User -->|Interacts on Web| UI
+    User -->|Sends messages| TelegramBotClient
+    
+    UI -->|Next.js Server Actions| APIRoutes
+    TelegramBotClient -->|Webhook / Polling| TelegramAPI
+    TelegramAPI -->|Payload| BotHandlers
+    
+    APIRoutes --> Prisma
+    BotHandlers --> Prisma
+    
+    BotHandlers -.->|Generate AI response / Insights| Gemini
+    
+    Prisma -->|Read/Write Data| DB
+```
+
+### Component Breakdown
+
+1. **Frontend (Next.js App Router)**: Built with **React 19** and **Tailwind CSS v4**, this is the web-based dashboard where users log in (secured via `bcrypt` and `jose` JWTs) and view their financial statistics, transaction history, and manage budgets/categories.
+2. **Backend (Next.js Server / API / Server Actions)**: Handles web interface interactions and acts as the secure middle layer between the frontend and the database.
+3. **Telegram Bot Engine**: Processes messages sent by the user, handling commands like `/tambah` (add), `/laporan` (report), and `/reset`. Depending on the environment, it uses a webhook implementation (Vercel) or a webhook/polling fallback (`polling-bot.js`).
+4. **Database Access (Prisma ORM)**: A type-safe interface for managing data stored in a **MySQL** database.
+5. **AI Integration (Google Generative AI)**: Connects to the Gemini API (`@google/generative-ai`) to offer smart insights or responses.
+
 ## 📦 Installation & Local Setup
 
 ### 1. Clone the repository

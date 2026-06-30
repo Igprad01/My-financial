@@ -313,6 +313,29 @@ Silakan klik tombol di bawah ini untuk masuk ke dashboard dan melihat laporan ke
       break;
     }
 
+    case "/dashboard": {
+      const dashboardUrl =
+        process.env.NEXT_PUBLIC_APP_URL ||
+        "https://my-financial-woad.vercel.app";
+
+      const pesan = `🔗 *Login Dashboard Web*\n\nSilakan klik tombol di bawah ini untuk mengakses dashboard keuangan Anda di web.`;
+
+      await telegram.sendMessage(chatId, pesan, {
+        parse_mode: "Markdown",
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: "🚀 Buka Dashboard Web",
+                url: `${dashboardUrl}/login`,
+              },
+            ],
+          ],
+        },
+      });
+      break;
+    }
+
     case "/anggaran": {
       let nominalString = args[1] || "";
       const secondArg = args[2]?.toLowerCase();
